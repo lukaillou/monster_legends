@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Builder Monster Legends</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+
+  <!-- ONBOARDING -->
+  <div class="onboarding-overlay" id="onboardingOverlay">
+    <div class="onboarding-card">
+      <div class="onboarding-step active" data-step="0">
+        <div class="onboarding-icon">🐉</div>
+        <div class="onboarding-title">Bienvenue dans le Team Builder</div>
+        <div class="onboarding-text">Construis et analyse ta team Monster Legends en quelques clics. Découvre comment
+          utiliser l'outil en 4 étapes rapides.</div>
+      </div>
+      <div class="onboarding-step" data-step="1">
+        <div class="onboarding-icon">⚔️</div>
+        <div class="onboarding-title">Sélectionne tes monstres</div>
+        <div class="onboarding-text">Choisis 3 monstres via les menus avec <b>recherche intégrée</b>. Utilise les
+          <b>filtres</b> pour trouver rapidement par élément ou rareté.
+        </div>
+      </div>
+      <div class="onboarding-step" data-step="2">
+        <div class="onboarding-icon">👜</div>
+        <div class="onboarding-title">Ma Collection</div>
+        <div class="onboarding-text">Coche tes monstres possédés dans <b>👜 Ma collection</b>. Active le mode
+          collection pour que <b>🤖 Meilleure team</b> ne cherche que parmi tes monstres.
+        </div>
+      </div>
+      <div class="onboarding-step" data-step="3">
+        <div class="onboarding-icon">🤖</div>
+        <div class="onboarding-title">Astuces</div>
+        <div class="onboarding-text"><b>🤖 Meilleure team</b> calcule automatiquement la combinaison optimale.<br><b>🔗
+            Partager</b> copie un lien vers ta team.<br>Raccourcis : <kbd>Entrée</kbd> analyser, <kbd>R</kbd> reset
+          filtres, <kbd>Échap</kbd> fermer.</div>
+      </div>
+      <div class="onboarding-dots">
+        <div class="onboarding-dot active"></div>
+        <div class="onboarding-dot"></div>
+        <div class="onboarding-dot"></div>
+        <div class="onboarding-dot"></div>
+      </div>
+      <button class="onboarding-btn" id="onboardingNext">Suivant →</button>
+      <button class="onboarding-skip" id="onboardingSkip">Passer l'intro</button>
+    </div>
+  </div>
+
+  <!-- MODAL PLEIN ÉCRAN CARTE -->
+  <div class="modal-overlay" id="modalOverlay" onclick="fermerModal(event)">
+    <div class="modal-card" id="modalCard">
+      <button class="modal-close" onclick="fermerModal()">✕ Fermer</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- MODAL COLLECTION -->
+  <div class="modal-overlay" id="collectionModal" onclick="if(event.target===this)fermerModalCollection()">
+    <div class="modal-card collection-modal-card">
+      <button class="modal-close" onclick="fermerModalCollection()">✕ Fermer</button>
+      <div class="coll-header">
+        <div class="coll-title">👜 Ma Collection</div>
+        <div class="coll-count" id="collectionCount">0 monstres possédés</div>
+      </div>
+      <div class="coll-filters">
+        <input type="text" id="collectionSearch" class="coll-search" placeholder="🔍 Rechercher..." oninput="afficherListeCollection()">
+        <select class="filter-select" id="collFiltreElement" onchange="afficherListeCollection()">
+          <option value="">Tous éléments</option>
+        </select>
+        <select class="filter-select" id="collFiltreRarete" onchange="afficherListeCollection()">
+          <option value="">Toutes raretés</option>
+          <option value="common">Common</option>
+          <option value="uncommon">Uncommon</option>
+          <option value="rare">Rare</option>
+          <option value="epic">Epic</option>
+          <option value="legendary">Legendary</option>
+          <option value="mythic">Mythic</option>
+          <option value="ancestral">Ancestral</option>
+          <option value="ancestor">Ancestor</option>
+        </select>
+      </div>
+      <div class="coll-actions">
+        <button class="coll-btn" onclick="selectionnerTout()">✅ Tout sélectionner</button>
+        <button class="coll-btn" onclick="deselectionnerTout()">❌ Tout désélectionner</button>
+        <button class="coll-btn" onclick="importerCollection()">📥 Importer</button>
+        <button class="coll-btn" onclick="exporterCollection()">📤 Exporter</button>
+      </div>
+      <div class="coll-list" id="collectionList"></div>
+    </div>
+  </div>
+
+  <div class="wrapper">
+    <div class="header">
+      <div class="header-top">
+        <button class="btn-theme" onclick="toggleTheme()" title="Changer le thème">🌙</button>
+      </div>
+      <div class="header-badge">Monster Legends</div>
+      <h1>Team Builder</h1>
+      <div class="header-sub">Construis ta team légendaire</div>
+      <div class="header-line"><span>⚔</span></div>
+    </div>
+
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input id="search" placeholder="Rechercher un monstre..." oninput="filtrer()" autocomplete="off">
+      <div id="suggestions"></div>
+    </div>
+
+    <!-- FILTRES + TRI -->
+    <div class="filter-row">
+      <select class="filter-select" id="filtreElement" onchange="appliquerFiltres()">
+        <option value="">🌿 Tous les éléments</option>
+      </select>
+      <select class="filter-select" id="filtreRarete" onchange="appliquerFiltres()">
+        <option value="">💎 Toutes les raretés</option>
+        <option value="common">Common</option>
+        <option value="uncommon">Uncommon</option>
+        <option value="rare">Rare</option>
+        <option value="epic">Epic</option>
+        <option value="legendary">Legendary</option>
+        <option value="mythic">Mythic</option>
+        <option value="ancestral">Ancestral</option>
+        <option value="ancestor">Ancestor</option>
+      </select>
+      <button class="btn-reset-filters" onclick="resetFiltres()">✕ Reset</button>
+      <span class="filter-counter" id="filterCounter"></span>
+    </div>
+    <div class="sort-row">
+      <span class="sort-label">Trier :</span>
+      <button class="sort-btn active" data-sort="alpha" onclick="setSortMode('alpha',this)">A–Z</button>
+      <button class="sort-btn" data-sort="id" onclick="setSortMode('id',this)">ID</button>
+      <button class="sort-btn" data-sort="rarity" onclick="setSortMode('rarity',this)">Rareté</button>
+      <button class="sort-btn" data-sort="element" onclick="setSortMode('element',this)">Élément</button>
+    </div>
+
+    <!-- COLLECTION BAR -->
+    <div class="collection-bar">
+      <button class="btn-collection" id="btnCollection" onclick="toggleModeCollection()">👜 Ma collection (0)</button>
+      <button class="btn-collection-edit" onclick="ouvrirModalCollection()">✏️ Gérer</button>
+      <div class="collection-hint" id="collectionHint" style="display:none">
+        ✅ Mode collection actif — 🤖 ne cherche que dans ta collection
+      </div>
+    </div>
+
+    <!-- MODE TABS -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="setMode('simple',this)">⚔ Analyse simple</button>
+      <button class="mode-tab" onclick="setMode('compare',this)">⚖ Comparer deux teams</button>
+    </div>
+
+    <!-- MODE SIMPLE -->
+    <div id="modeSimple">
+      <div class="section-label">Composition de l'équipe</div>
+      <div class="monster-rows">
+        <div class="monster-row" id="row1">
+          <span class="row-num">I</span>
+          <div id="monstre1_cs" class="custom-select-wrap"></div>
+          <select id="niveau1" class="niveau-select" onchange="onMonstreChange()"></select>
+          <span class="duplicate-warn" id="warn1" style="display:none">⚠ Doublon</span>
+        </div>
+        <div class="monster-row" id="row2">
+          <span class="row-num">II</span>
+          <div id="monstre2_cs" class="custom-select-wrap"></div>
+          <select id="niveau2" class="niveau-select" onchange="onMonstreChange()"></select>
+          <span class="duplicate-warn" id="warn2" style="display:none">⚠ Doublon</span>
+        </div>
+        <div class="monster-row" id="row3">
+          <span class="row-num">III</span>
+          <div id="monstre3_cs" class="custom-select-wrap"></div>
+          <select id="niveau3" class="niveau-select" onchange="onMonstreChange()"></select>
+          <span class="duplicate-warn" id="warn3" style="display:none">⚠ Doublon</span>
+        </div>
+      </div>
+      <!-- SYNERGIE -->
+      <div class="synergie-wrap">
+        <div class="synergie-title">Synergie élémentaire</div>
+        <div class="synergie-selector">
+          <span class="synergie-label">Adversaire :</span>
+          <select class="synergie-select" id="synergieAdversaire" onchange="calculerSynergie()">
+            <option value="">Choisir l'élément adverse</option>
+          </select>
+        </div>
+        <div class="synergie-result" id="synergieResult"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-analyse" onclick="calculer()">⚔ Analyser</button>
+        <div class="auto-wrap">
+          <select class="auto-mode-sel" id="autoMode">
+            <option value="balanced">⚖️ Équilibré</option>
+            <option value="speed">⚡ Vitesse max</option>
+            <option value="dps">⚔️ DPS max</option>
+            <option value="tank">🛡️ Survie max</option>
+            <option value="element">🎯 vs Élément</option>
+          </select>
+          <select class="auto-mode-sel auto-elem-sel" id="autoElement" style="display:none">
+            <option value="feu">🔥 Feu</option>
+            <option value="eau">💧 Eau</option>
+            <option value="nature">🌿 Nature</option>
+            <option value="terre">🪨 Terre</option>
+            <option value="foudre">⚡ Foudre</option>
+            <option value="métal">⚙️ Métal</option>
+            <option value="ténèbres">🌑 Ténèbres</option>
+            <option value="lumière">✨ Lumière</option>
+            <option value="magie">🔮 Magie</option>
+          </select>
+          <button class="btn-auto" id="btnAuto" onclick="lancerMeilleureTeam()">🤖 Meilleure team</button>
+        </div>
+        <button class="btn-export" id="btnExport" onclick="exporterEquipe()">🔗 Partager</button>
+        <div class="spinner-wrap" id="spinnerWrap">
+          <div class="spinner"></div><span>Calcul...</span>
+        </div>
+      </div>
+      <div class="kbd-hint">Raccourcis : <span class="kbd">Entrée</span> Analyser &nbsp; <span class="kbd">R</span>
+        Reset filtres &nbsp; <span class="kbd">Échap</span> Fermer</div>
+      <div class="team" id="teamVisuel"></div>
+      <div id="resultat"></div>
+      <div class="history-section" id="historySection" style="display:none">
+        <div class="section-label">Historique des équipes</div>
+        <div class="history-list" id="historyList"></div>
+      </div>
+    </div>
+
+    <!-- MODE COMPARE -->
+    <div id="modeCompare" style="display:none">
+      <div class="compare-wrap visible">
+        <div class="compare-side">
+          <div class="compare-side-label">🔵 TEAM A</div>
+          <div class="monster-rows">
+            <div class="monster-row"><span class="row-num">I</span><select id="cmpA1"
+                onchange="onCompareChange()"></select><select id="cnivA1" class="niveau-select"
+                onchange="onCompareChange()"></select></div>
+            <div class="monster-row"><span class="row-num">II</span><select id="cmpA2"
+                onchange="onCompareChange()"></select><select id="cnivA2" class="niveau-select"
+                onchange="onCompareChange()"></select></div>
+            <div class="monster-row"><span class="row-num">III</span><select id="cmpA3"
+                onchange="onCompareChange()"></select><select id="cnivA3" class="niveau-select"
+                onchange="onCompareChange()"></select></div>
+          </div>
+        </div>
+        <div class="compare-vs">VS</div>
+        <div class="compare-side">
+          <div class="compare-side-label">🔴 TEAM B</div>
+          <div class="monster-rows">
+            <div class="monster-row"><span class="row-num">I</span><select id="cmpB1"
+                onchange="onCompareChange()"></select><select id="cnivB1" class="niveau-select"
+                onchange="onCompareChange()"></select></div>
+            <div class="monster-row"><span class="row-num">II</span><select id="cmpB2"
+                onchange="onCompareChange()"></select><select id="cnivB2" class="niveau-select"
+                onchange="onCompareChange()"></select></div>
+            <div class="monster-row"><span class="row-num">III</span><select id="cmpB3"
+                onchange="onCompareChange()"></select><select id="cnivB3" class="niveau-select"
+                onchange="onCompareChange()"></select></div>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-analyse" onclick="comparerTeams()">⚖ Comparer</button>
+      </div>
+      <div class="compare-results" id="compareResults">
+        <div class="compare-result-side">
+          <div class="team" id="teamVisuelA"></div>
+          <div id="resultatA"></div>
+        </div>
+        <div class="compare-result-side">
+          <div class="team" id="teamVisuelB"></div>
+          <div id="resultatB"></div>
+        </div>
+      </div>
+      <div class="compare-winner" id="compareWinner" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div id="detailCard">
+    <button class="closeBtn" onclick="closeDetail()">✕ Fermer</button>
+    <div id="detailContent">Sélectionne un monstre</div>
+  </div>
+
+  <script src="./script.js"></script>
+</body>
+
+</html>
